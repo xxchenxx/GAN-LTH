@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 def train(args, gen_net: nn.Module, dis_net: nn.Module, gen_optimizer, dis_optimizer, gen_avg_param, train_loader, epoch,
           writer_dict, schedulers=None):
     
-    np.random.seed(args.random_seed + epoch ** 2)
+    #np.random.seed(args.random_seed + epoch ** 2)
     writer = writer_dict['writer']
     gen_step = 0
 
@@ -125,7 +125,7 @@ def train(args, gen_net: nn.Module, dis_net: nn.Module, gen_optimizer, dis_optim
     writer.add_scalar('accuracy_epoch', (sum(tps) + sum(tns)) / (sum(tps) + sum(tns) + sum(fps) + sum(fns) + 1e-3), global_steps)
 
 def train_kd(args, gen_net: nn.Module, dis_net: nn.Module, orig_dis_net, gen_optimizer, dis_optimizer, gen_avg_param, train_loader, epoch, writer_dict, schedulers=None):
-    np.random.seed(args.random_seed + epoch ** 2)
+    #np.random.seed(args.random_seed + epoch ** 2)
     writer = writer_dict['writer']
     gen_step = 0
 
@@ -240,7 +240,7 @@ def train_kd(args, gen_net: nn.Module, dis_net: nn.Module, orig_dis_net, gen_opt
 
 def train_with_mask(args, gen_net: nn.Module, dis_net: nn.Module, gen_optimizer, dis_optimizer, gen_avg_param, train_loader, epoch,
           writer_dict, masks, schedulers=None):
-    np.random.seed(args.random_seed + epoch ** 2)
+    #np.random.seed(args.random_seed + epoch ** 2)
     writer = writer_dict['writer']
     gen_step = 0
 
