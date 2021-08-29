@@ -23,7 +23,7 @@ torch.backends.cudnn.benchmark = True
 
 def main():
     args = cfg.parse_args()
-    set_seed(args.seed)
+    set_seed(args.random_seed)
 
     # set tf env
     _init_inception()

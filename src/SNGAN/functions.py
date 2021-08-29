@@ -341,7 +341,7 @@ def train_with_mask(args, gen_net: nn.Module, dis_net: nn.Module, gen_optimizer,
 
 def train_with_mask_kd(args, gen_net: nn.Module, dis_net: nn.Module, orig_dis_net, gen_optimizer, dis_optimizer, gen_avg_param, train_loader, epoch,
           writer_dict, masks, schedulers=None):
-    np.random.seed(args.random_seed + epoch ** 2)
+    #np.random.seed(args.random_seed + epoch ** 2)
     writer = writer_dict['writer']
     gen_step = 0
     orig_dis_net.eval()
@@ -460,7 +460,7 @@ def train_with_mask_kd(args, gen_net: nn.Module, dis_net: nn.Module, orig_dis_ne
 
 
 def validate(args, fixed_z, fid_stat, gen_net: nn.Module, writer_dict, epoch):
-    np.random.seed(args.random_seed ** 2 + epoch)
+    #np.random.seed(args.random_seed ** 2 + epoch)
     writer = writer_dict['writer']
     global_steps = writer_dict['valid_global_steps']
 
