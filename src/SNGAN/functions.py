@@ -28,10 +28,6 @@ def train(args, gen_net: nn.Module, dis_net: nn.Module, gen_optimizer, dis_optim
     # train mode
     gen_net = gen_net.train()
     dis_net = dis_net.train()
-    tps = []
-    tns = []
-    fns = []
-    fps = []
     
     gen_net.train()
     for iter_idx, (imgs, _) in enumerate(train_loader):
@@ -39,7 +35,7 @@ def train(args, gen_net: nn.Module, dis_net: nn.Module, gen_optimizer, dis_optim
 
         # Adversarial ground truths
         real_imgs = imgs.type(torch.cuda.FloatTensor)
-        #real_imgs = DiffAugment(real_imgs, policy="translation,cutout")
+        
         # Sample noise as generator input
         z = torch.cuda.FloatTensor(np.random.normal(0, 1, (imgs.shape[0], args.latent_dim)))
         # ---------------------
@@ -49,8 +45,6 @@ def train(args, gen_net: nn.Module, dis_net: nn.Module, gen_optimizer, dis_optim
 
         real_validity = dis_net(real_imgs)
         fake_imgs = gen_net(z).detach()
-        #fake_imgs = DiffAugment(fake_imgs, policy="translation,cutout")
-
         assert fake_imgs.size() == real_imgs.size()
 
         fake_validity = dis_net(fake_imgs)
@@ -60,24 +54,9 @@ def train(args, gen_net: nn.Module, dis_net: nn.Module, gen_optimizer, dis_optim
                  torch.mean(nn.ReLU(inplace=True)(1 + fake_validity))
         d_loss.backward()
         dis_optimizer.step()
+
         writer.add_scalar('d_loss', d_loss.item(), global_steps)
         
-        tp = torch.sum(real_validity > 0)
-        tn = torch.sum(fake_validity < 0)
-        fn = torch.sum(real_validity <= 0)
-        fp = torch.sum(fake_validity >= 0)
-        precision = tp / (tp + fp + 1e-3)
-        recall = tp / (tp + fn + 1e-3)
-        accuracy = (tp + tn) / (tp + fn + fp + tn)
-        
-        fps.append(fp.item())
-        tps.append(tp.item())
-        fns.append(fn.item())
-        tns.append(tn.item())
-
-        writer.add_scalar('precision', precision.item(), global_steps)
-        writer.add_scalar('recall', recall.item(), global_steps)
-        writer.add_scalar('accuracy', accuracy.item(), global_steps)
         # -----------------
         #  Train Generator
         # -----------------
@@ -86,14 +65,10 @@ def train(args, gen_net: nn.Module, dis_net: nn.Module, gen_optimizer, dis_optim
 
             gen_z = torch.cuda.FloatTensor(np.random.normal(0, 1, (args.gen_batch_size, args.latent_dim)))
             gen_imgs = gen_net(gen_z)
-            
-            #gen_imgs = DiffAugment(gen_imgs, policy="translation,cutout")
-
             fake_validity = dis_net(gen_imgs)
 
             # cal loss
             g_loss = -torch.mean(fake_validity)
-        
             g_loss.backward()
             gen_optimizer.step()
 
@@ -120,12 +95,8 @@ def train(args, gen_net: nn.Module, dis_net: nn.Module, gen_optimizer, dis_optim
 
         writer_dict['train_global_steps'] = global_steps + 1
     
-    writer.add_scalar('precision_epoch', sum(tps) / (sum(tps) + sum(fps) + 1e-3), global_steps)
-    writer.add_scalar('recall_epoch', sum(tps) / (sum(tps) + sum(fns) + 1e-3), global_steps)
-    writer.add_scalar('accuracy_epoch', (sum(tps) + sum(tns)) / (sum(tps) + sum(tns) + sum(fps) + sum(fns) + 1e-3), global_steps)
-
 def train_kd(args, gen_net: nn.Module, dis_net: nn.Module, orig_dis_net, gen_optimizer, dis_optimizer, gen_avg_param, train_loader, epoch, writer_dict, schedulers=None):
-    #np.random.seed(args.random_seed + epoch ** 2)
+
     writer = writer_dict['writer']
     gen_step = 0
 
@@ -133,12 +104,7 @@ def train_kd(args, gen_net: nn.Module, dis_net: nn.Module, orig_dis_net, gen_opt
     gen_net.train()
     dis_net.train()
     orig_dis_net.eval()
-    tps = []
-    tns = []
-    fns = []
-    fps = []
     
-    gen_net.train()
     for iter_idx, (imgs, _) in enumerate(train_loader):
         global_steps = writer_dict['train_global_steps']
 
@@ -179,22 +145,6 @@ def train_kd(args, gen_net: nn.Module, dis_net: nn.Module, orig_dis_net, gen_opt
 
         writer.add_scalar('d_loss', d_loss.item(), global_steps)
         
-        tp = torch.sum(real_validity > 0)
-        tn = torch.sum(fake_validity < 0)
-        fn = torch.sum(real_validity <= 0)
-        fp = torch.sum(fake_validity >= 0)
-        precision = tp / (tp + fp + 1e-3)
-        recall = tp / (tp + fn + 1e-3)
-        accuracy = (tp + tn) / (tp + fn + fp + tn)
-        
-        fps.append(fp.item())
-        tps.append(tp.item())
-        fns.append(fn.item())
-        tns.append(tn.item())
-
-        writer.add_scalar('precision', precision.item(), global_steps)
-        writer.add_scalar('recall', recall.item(), global_steps)
-        writer.add_scalar('accuracy', accuracy.item(), global_steps)
         # -----------------
         #  Train Generator
         # -----------------
@@ -233,24 +183,16 @@ def train_kd(args, gen_net: nn.Module, dis_net: nn.Module, orig_dis_net, gen_opt
 
         writer_dict['train_global_steps'] = global_steps + 1
     
-    writer.add_scalar('precision_epoch', sum(tps) / (sum(tps) + sum(fps) + 1e-3), global_steps)
-    writer.add_scalar('recall_epoch', sum(tps) / (sum(tps) + sum(fns) + 1e-3), global_steps)
-    writer.add_scalar('accuracy_epoch', (sum(tps) + sum(tns)) / (sum(tps) + sum(tns) + sum(fps) + sum(fns) + 1e-3), global_steps)
 
 
 def train_with_mask(args, gen_net: nn.Module, dis_net: nn.Module, gen_optimizer, dis_optimizer, gen_avg_param, train_loader, epoch,
           writer_dict, masks, schedulers=None):
-    #np.random.seed(args.random_seed + epoch ** 2)
     writer = writer_dict['writer']
     gen_step = 0
 
     # train mode
     gen_net.train()
     dis_net.train()
-    tps = []
-    tns = []
-    fns = []
-    fps = []
         
     for iter_idx, (imgs, _) in enumerate(train_loader):
         global_steps = writer_dict['train_global_steps']
@@ -286,18 +228,6 @@ def train_with_mask(args, gen_net: nn.Module, dis_net: nn.Module, gen_optimizer,
 
         writer.add_scalar('d_loss', d_loss.item(), global_steps)
         
-        tp = torch.sum(real_validity > 0)
-        tn = torch.sum(fake_validity < 0)
-        fn = torch.sum(real_validity <= 0)
-        fp = torch.sum(fake_validity >= 0)
-        precision = tp / (tp + fp + 1e-3)
-        recall = tp / (tp + fn + 1e-3)
-        accuracy = (tp + tn) / (tp + fp + tn + tn)
-        
-        fps.append(fp.item())
-        tps.append(tp.item())
-        fns.append(fn.item())
-        tns.append(tn.item())
         # -----------------
         #  Train Generator
         # -----------------
@@ -334,10 +264,6 @@ def train_with_mask(args, gen_net: nn.Module, dis_net: nn.Module, gen_optimizer,
                 (epoch, args.max_epoch, iter_idx % len(train_loader), len(train_loader), d_loss.item(), g_loss.item()))
 
         writer_dict['train_global_steps'] = global_steps + 1
-    
-    writer.add_scalar('precision_epoch', sum(tps) / (sum(tps) + sum(fps) + 1e-3), global_steps)
-    writer.add_scalar('recall_epoch', sum(tps) / (sum(tps) + sum(fns) + 1e-3), global_steps)
-    writer.add_scalar('accuracy_epoch', (sum(tps) + sum(tns)) / (sum(tps) + sum(tns) + sum(fps) + sum(fns) + 1e-3), global_steps)
 
 def train_with_mask_kd(args, gen_net: nn.Module, dis_net: nn.Module, orig_dis_net, gen_optimizer, dis_optimizer, gen_avg_param, train_loader, epoch,
           writer_dict, masks, schedulers=None):
@@ -350,10 +276,7 @@ def train_with_mask_kd(args, gen_net: nn.Module, dis_net: nn.Module, orig_dis_ne
     # train mode
     gen_net = gen_net.train()
     dis_net = dis_net.train()
-    tps = []
-    tns = []
-    fns = []
-    fps = []
+    
         
     for iter_idx, (imgs, _) in enumerate((train_loader)):
         global_steps = writer_dict['train_global_steps']
@@ -401,22 +324,6 @@ def train_with_mask_kd(args, gen_net: nn.Module, dis_net: nn.Module, orig_dis_ne
 
         writer.add_scalar('d_loss', d_loss.item(), global_steps)
         
-        tp = torch.sum(real_validity > 0)
-        tn = torch.sum(fake_validity < 0)
-        fn = torch.sum(real_validity <= 0)
-        fp = torch.sum(fake_validity >= 0)
-        precision = tp / (tp + fp + 1e-3)
-        recall = tp / (tp + fn + 1e-3)
-        accuracy = (tp + tn) / (tp + fn + fp + tn)
-        
-        fps.append(fp.item())
-        tps.append(tp.item())
-        fns.append(fn.item())
-        tns.append(tn.item())
-
-        writer.add_scalar('precision', precision.item(), global_steps)
-        writer.add_scalar('recall', recall.item(), global_steps)
-        writer.add_scalar('accuracy', accuracy.item(), global_steps)
         # -----------------
         #  Train Generator
         # -----------------
@@ -454,10 +361,6 @@ def train_with_mask_kd(args, gen_net: nn.Module, dis_net: nn.Module, orig_dis_ne
 
         writer_dict['train_global_steps'] = global_steps + 1
     
-    writer.add_scalar('precision_epoch', sum(tps) / (sum(tps) + sum(fps) + 1e-3), global_steps)
-    writer.add_scalar('recall_epoch', sum(tps) / (sum(tps) + sum(fns) + 1e-3), global_steps)
-    writer.add_scalar('accuracy_epoch', (sum(tps) + sum(tns)) / (sum(tps) + sum(tns) + sum(fps) + sum(fns) + 1e-3), global_steps)
-
 
 def validate(args, fixed_z, fid_stat, gen_net: nn.Module, writer_dict, epoch):
     #np.random.seed(args.random_seed ** 2 + epoch)
