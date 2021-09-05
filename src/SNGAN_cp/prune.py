@@ -51,7 +51,7 @@ with torch.no_grad():
     # define model
     G0 = Generator(bottom_width=args.bottom_width, gf_dim=args.gf_dim, latent_dim=args.latent_dim).cuda()
     # load ckpt
-    pth_path = os.path.join('logs', 'sngan_cifar10_2021_02_08_00_23_21', 'Model', 'checkpoint_best.pth')
+    pth_path = os.path.join('logs', 'sngan_cifar10_2020_07_04_03_54_30', 'Model', 'checkpoint_best.pth')
     checkpoint = torch.load(pth_path)
     G0.load_state_dict(checkpoint['avg_gen_state_dict'])
     best_dense_epoch = checkpoint['epoch']
