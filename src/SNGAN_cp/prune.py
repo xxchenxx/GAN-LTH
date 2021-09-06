@@ -52,7 +52,7 @@ with torch.no_grad():
     G0 = Generator(bottom_width=args.bottom_width, gf_dim=args.gf_dim, latent_dim=args.latent_dim).cuda()
     # load ckpt
     pth_path = os.path.join('logs', 'sngan_cifar10_2020_07_04_03_54_30', 'Model', 'checkpoint_best.pth')
-    checkpoint = torch.load(pth_path)
+    checkpoint = torch.load(pth_path, map_location="cpu")
     G0.load_state_dict(checkpoint['avg_gen_state_dict'])
     best_dense_epoch = checkpoint['epoch']
     print('loaded from %s, epoch %d' % (pth_path, best_dense_epoch))
