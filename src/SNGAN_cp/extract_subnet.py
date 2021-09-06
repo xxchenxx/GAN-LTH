@@ -63,7 +63,7 @@ if __name__ == '__main__':
 	os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
 
 	exp_str = args.dir
-	args.load_path = os.path.join( 
+	args.load_path = os.path.join(
 		exp_str,
 		'pth', 'epoch{}.pth'.format(args.load_epoch))
 	print("=> Loading checkpoint from {}".format(args.load_path))

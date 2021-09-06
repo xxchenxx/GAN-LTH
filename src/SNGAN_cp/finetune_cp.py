@@ -120,7 +120,7 @@ def main():
     init_state_dict = gen_net.state_dict()
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
     exp_str = args.dir
-    args.load_path = os.path.join('output',
+    args.load_path = os.path.join(
         exp_str,
         'pth', 'epoch{}.pth'.format(args.load_epoch))
 
