@@ -246,7 +246,7 @@ for epoch in range(int(start_epoch), int(args.max_epoch)):
                             fid_stat, G, do_IS=args.do_IS, do_FID=args.do_FID)
         # save FID and IS results:
         print('Inception score: %.4f, FID score: %.4f || @ epoch %d.' % (inception_score, fid_score, epoch))
-    if (epoch + 1) % args.val_freq == 0 or epoch == int(args.max_epoch)-1:
+    if (epoch + 1) % args.val_freq == 0:
         # save generated images:
         gen_img_big = validate_cp(fixed_z, G)
         soft_gt_img_big = validate_cp(fixed_z, G0)
@@ -266,4 +266,13 @@ for epoch in range(int(start_epoch), int(args.max_epoch)):
             'output_dir': args.output_dir
         }, output_dir=args.pth_dir, filename='epoch%d.pth' % epoch)
 
+    save_checkpoint_cp({
+            'epoch': epoch + 1,
+            'generator': G.state_dict(),
+            'discriminator': D.state_dict(),
+            'W_optimizer': W_optimizer.state_dict(),
+            'gamma_optimizer': gamma_optimizer.state_dict(),
+            'best_fid': best_fid,
+            'output_dir': args.output_dir
+        }, output_dir=args.pth_dir, filename='epoch%d.pth' % epoch)
     
