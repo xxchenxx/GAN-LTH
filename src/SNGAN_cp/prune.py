@@ -246,7 +246,7 @@ for epoch in range(int(start_epoch), int(args.max_epoch)):
                             fid_stat, G, do_IS=args.do_IS, do_FID=args.do_FID)
         # save FID and IS results:
         print('Inception score: %.4f, FID score: %.4f || @ epoch %d.' % (inception_score, fid_score, epoch))
-    if epoch % 5 == 0 or epoch == int(args.max_epoch)-1:
+    if epoch % args.val_freq == 0 or epoch == int(args.max_epoch)-1:
         # save generated images:
         gen_img_big = validate_cp(fixed_z, G)
         soft_gt_img_big = validate_cp(fixed_z, G0)
