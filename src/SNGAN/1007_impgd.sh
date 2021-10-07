@@ -1,6 +1,6 @@
 
 
-CUDA_VISIBLE_DEVICES=4 nohup python train_impgd.py --model sngan_cifar10 --exp_name sngan_cifar10 --init-path initial_weight_1 --load-path logs/sngan_cifar10_2021_08_24_01_28_02 --random_seed 1 --use-kd-D > 1007_impgdkd_GPU4.out &
+CUDA_VISIBLE_DEVICES=4 nohup python train_impgd.py --model sngan_cifar10 --exp_name sngan_cifar10 --init-path initial_weight_1 --load-path logs/sngan_cifar10_2021_08_24_01_28_02 --random_seed 1 --use-kd-D > 1007_impgdkd_seed1_GPU4.out &
 
 CUDA_VISIBLE_DEVICES=5 nohup python train_impgd.py --model sngan_cifar10 --exp_name sngan_cifar10 --init-path initial_weight_2 --load-path logs/sngan_cifar10_2021_08_24_01_28_00 --random_seed 2 --use-kd-D > 1007_impgdkd_seed2_GPU5.out &
 
